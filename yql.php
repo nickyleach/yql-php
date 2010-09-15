@@ -22,7 +22,7 @@ class yql {
 	 * Returns the raw results of the YQL query
 	 * Should be delegated to by other methods in child classes
 	 */
-	public function query((string)$query, (array)$args = array()){
+	public function query($query, $args = array()){
 		$queryUrl = self::yqlUrl."?q=" . urlencode(self::encodeQuery($query, $args))."&format=json&env=".urlencode("store://datatables.org/alltableswithkeys");
 		
 		$json = file_get_contents($queryUrl);
@@ -47,7 +47,7 @@ class yql {
 	 * Uses sprintf syntax to generate a query.
 	 * Fills in placeholders using values in the $args array
 	 */
-	function encodeQuery((string)$queryFormat, (array)$args){
+	function encodeQuery($queryFormat, $args){
 		return vsprintf($queryFormat, $args);
 	}
 }
