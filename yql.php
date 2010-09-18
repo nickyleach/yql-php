@@ -18,20 +18,24 @@ class yql {
 	 * @access public
 	 * @param string $query
 	 * @param array $args. (default: array())
+	 * @param bool $diagnostics (default: false)
 	 * @return mixed $response
 	 * Returns the raw results of the YQL query
 	 * Should be delegated to by other methods in child classes
 	 */
-	public function query($query, $args = array()){
-		$queryUrl = self::yqlUrl."?q=" . urlencode(self::encodeQuery($query, $args))."&format=json&env=".urlencode("store://datatables.org/alltableswithkeys");
+	public function query($query, $args = array(), $diagnostics = false){
+		$queryUrl = self::yqlUrl."?q=" . urlencode(self::encodeQuery($query, $args))."&format=json&env=".urlencode("store://datatables.org/alltableswithkeys") . ( $diagnostics ? "&diagnostics=true" : "" );
 		
-		$json = file_get_contents($queryUrl);
+		$ch = curl_init($queryUrl);
+		curl_setopt($ch, CURLOPT_HEADER, false);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		$json = curl_exec($ch);
+		curl_close($ch);
+		
         if ($json !== false){
         	$data = json_decode($json, true);
         	
-        	$response = $data['query']['results'];
-        	
-        	return $response;
+        	return $data;
         } else {
         	return false;
         }
@@ -48,7 +52,12 @@ class yql {
 	 * Fills in placeholders using values in the $args array
 	 */
 	function encodeQuery($queryFormat, $args){
-		return vsprintf($queryFormat, $args);
+		foreach($args as &$arg){
+			$arg = addslashes($arg);
+		}
+		$query = vsprintf($queryFormat, $args);
+		
+		return $query;
 	}
 }
 
